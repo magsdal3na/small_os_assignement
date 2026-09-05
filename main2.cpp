@@ -59,8 +59,6 @@ class MemoryManager {
 
     //Collects disk block info and calculates total file size
     int calculateFileSize(const vector<DiskBlock>& diskBlocks) {
-        //File size needed
-        int fileSizeKB = 8;
 
         cout << "\n--- Collecting Disk Fragments & Calculating Required Memory ---" << endl;
         int totalSize = 0;
@@ -73,7 +71,7 @@ class MemoryManager {
             totalSize += diskBlocks[i].sizeInKB;
         }
         cout << "\nTotal Block Count: " << diskBlocks.size() << endl;
-        cout << "Total File Size to load into memory: " << fileSizeKB << "KB" << endl;
+        cout << "Total File Size to load into memory: " << totalSize << "KB" << endl;
         return totalSize;
     }
 
@@ -116,7 +114,9 @@ class MemoryManager {
         cout << "\n--- Memory Allocation ---" << endl;
         int pagesNeeded = (fileSizeKB + pageSize - 1) / pageSize;
 
-        liberateSpace(fileSizeKB);
+        if(getFreeMemory() < fileSizeKB) {
+            liberateSpace(fileSizeKB);
+        }
 
         if(getFreeMemory() < fileSizeKB) {
             cout << "Error: Failed to allocate memory even after liberation." << endl;
@@ -165,7 +165,11 @@ class MemoryManager {
 };
 
 int main() {
-    MemoryManager memManager(20, 1);
+
+    //Initial setup
+    MemoryManager mem1(20, 1);
+    vector<int> diskBlockNumbers;
+    vector<DiskBlock> fileFragments;
 
     //Initial memory state table
     vector<Process> initialProcesses = {
@@ -178,15 +182,18 @@ int main() {
         {7, 7, 2, 6, "Sleep"}
     };
 
-    memManager.initializeProcesses(initialProcesses);
+    //=============================================
+    //Use case 1 for file ID: 999 from instructions
+    //=============================================
+    mem1.initializeProcesses(initialProcesses);
 
     cout << "=== Initial Memory State ===" << endl;
-    memManager.displayMemoryState();
+    mem1.displayMemoryState();
 
-    vector<int> diskBlockNumbers = {28, 5, 12, 13, 1, 4};
+    diskBlockNumbers = {28, 5, 12, 13, 1, 4};
     int diskBlockSizeKB = 1;
 
-    vector<DiskBlock> fileFragments;
+    fileFragments.clear();
     for(int blockNum : diskBlockNumbers) {
         fileFragments.push_back({blockNum, diskBlockSizeKB});
     }
@@ -201,11 +208,50 @@ int main() {
          << targetStartTime << " to " << targetEndTime << endl;
 
     int requiredMemoryKB = 8;
-    memManager.calculateFileSize(fileFragments);
 
-    memManager.allocateFileMemory(targetFileID, requiredMemoryKB);
+    mem1.calculateFileSize(fileFragments);
 
-    memManager.displayMemoryState();
+    mem1.allocateFileMemory(targetFileID, requiredMemoryKB);
+
+    mem1.displayMemoryState();
+
+    //============================
+    //Use case 2 with file ID: 888
+    //============================
+    MemoryManager mem2(20, 1);
+    mem2.initializeProcesses(initialProcesses);
+
+    diskBlockNumbers = {15};
+
+    fileFragments.clear();
+    for(int blockNum : diskBlockNumbers) {
+        fileFragments.push_back({blockNum, diskBlockSizeKB});
+    }
+
+    int test1FileID = 888;
+    int test1SizeKB = mem2.calculateFileSize(fileFragments);
+
+    mem2.allocateFileMemory(test1FileID, test1SizeKB);
+    mem2.displayMemoryState();
+
+    //============================
+    //Use case 3 with file ID: 777
+    //============================
+    MemoryManager mem3(20, 1);
+    mem2.initializeProcesses(initialProcesses);
+
+    diskBlockNumbers = {40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51};
+
+    fileFragments.clear();
+    for(int blockNum : diskBlockNumbers) {
+        fileFragments.push_back({blockNum, diskBlockSizeKB});
+    }
+
+    int test2FileID = 777;
+    int test2SizeKB = mem2.calculateFileSize(fileFragments);
+
+    mem3.allocateFileMemory(test2FileID, test2SizeKB);
+    mem3.displayMemoryState();
 
     return 0;
 }
