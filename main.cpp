@@ -67,7 +67,39 @@ void freeJob(vector<int>& memory, int jobID) {
 }
 
 int findBestFit(const vector<int>& memory, int requiredSize) {
-    
+    //Initialize int variable that shows free slots
+    int freeCount = 0;
+    int bestSize{};
+    int bestStart{};
+
+    //Checking to see if enough memory is available for the required size
+    for (int i = 0; i < memory.size(); i++) {
+        
+        if (memory[i] == 0) {
+            freeCount++;
+        }
+
+        else {
+            if(freeCount >= requiredSize && (bestSize == 0 || freeCount < bestSize)) {
+                bestSize = freeCount;
+                bestStart = i - freeCount;
+            }
+
+            freeCount = 0;
+        }
+    }
+
+    if(freeCount >= requiredSize && (bestSize == 0 || freeCount < bestSize)) {
+        bestSize = freeCount;
+        bestStart = memory.size() - freeCount;
+    }
+
+    if(bestSize > 0) {
+        return bestStart;
+    }
+    else {
+        return -1;
+    } 
 }
 
 int main() {
@@ -129,7 +161,36 @@ int main() {
 
 
             //First-Fit
-        int location = findFirstFit(memory, job.size);
+        int location = findBestFit(memory, job.size);
+
+        if (location == -1) {
+        cout << "Not enough contiguous memory." << endl;
+        }
+        else {
+            for (int i = location; i < location + job.size; i++) {
+                memory[i] = job.id;
+        }
+    }
+    }
+
+    printMemory(memory);
+
+    freeJob(memory, 2);
+
+    printMemory(memory);
+
+        //Looping through jobs and printing variable outputs
+    for (Job job : jobs) {
+        cout << "Job " << job.id
+             << " starts at " << job.startTime
+             << ", requires " << job.size
+             << " KB, interval " << job.interval
+             << ", state " << job.endState
+             << endl;
+
+
+            //First-Fit
+        int location = findBestFit(memory, job.size);
 
         if (location == -1) {
         cout << "Not enough contiguous memory." << endl;
@@ -141,9 +202,8 @@ int main() {
     }
 
     printMemory(memory);
+    
     }
-
-    freeJob(memory, 2);
 
     return 0;
 }
