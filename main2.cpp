@@ -238,7 +238,7 @@ int main() {
     //Use case 3 with file ID: 777
     //============================
     MemoryManager mem3(20, 1);
-    mem2.initializeProcesses(initialProcesses);
+    mem3.initializeProcesses(initialProcesses);
 
     diskBlockNumbers = {40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51};
 
@@ -247,10 +247,10 @@ int main() {
         fileFragments.push_back({blockNum, diskBlockSizeKB});
     }
 
-    int test2FileID = 777;
-    int test2SizeKB = mem2.calculateFileSize(fileFragments);
+    int test3FileID = 777;
+    int test3SizeKB = mem3.calculateFileSize(fileFragments);
 
-    mem3.allocateFileMemory(test2FileID, test2SizeKB);
+    mem3.allocateFileMemory(test3FileID, test3SizeKB);
     mem3.displayMemoryState();
 
     return 0;
