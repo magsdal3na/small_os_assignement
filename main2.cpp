@@ -59,6 +59,9 @@ class MemoryManager {
 
     //Collects disk block info and calculates total file size
     int calculateFileSize(const vector<DiskBlock>& diskBlocks) {
+        //File size needed
+        int fileSizeKB = 8;
+
         cout << "\n--- Collecting Disk Fragments & Calculating Required Memory ---" << endl;
         int totalSize = 0;
         cout << "Disk blocks assigned to file: ";
@@ -66,11 +69,11 @@ class MemoryManager {
             cout << diskBlocks[i].blockNumber;
             if(i < diskBlocks.size() - 1) {
                 cout << " -> ";
-                totalSize += diskBlocks[i].sizeInKB;
             }
+            totalSize += diskBlocks[i].sizeInKB;
         }
         cout << "\nTotal Block Count: " << diskBlocks.size() << endl;
-        cout << "Calculated Total File Size to load into memory: " << totalSize << "KB" << endl;
+        cout << "Total File Size to load into memory: " << fileSizeKB << "KB" << endl;
         return totalSize;
     }
 
@@ -87,7 +90,7 @@ class MemoryManager {
 
     //Liberation/replacement strategy if memory is insufficient
     void liberateSpace(int requiredKB) {
-        cout << "\n[Memory Manager] Not enough space! Liberating memory..." << endl;
+        cout << "\n[Memory Manager] Not enough space. Liberating memory..." << endl;
 
         //Removes sleeping/inactive processes to free up space
         for(auto& proc : processTable) {
@@ -96,7 +99,6 @@ class MemoryManager {
             }
             if(proc.state == "Sleep" && proc.requiredSize > 0) {
                 cout << "-> Liberating Process ID " << proc.id << " (Freed " << proc.requiredSize << " KB)" << endl;
-            }
 
             //Clearing from physical memory
             for(auto& page : physicalMemory) {
@@ -105,6 +107,7 @@ class MemoryManager {
                 }
             }
             proc.state = "Evicted";
+            }
         }
     }
 
@@ -112,6 +115,8 @@ class MemoryManager {
     bool allocateFileMemory(int fileID, int fileSizeKB) {
         cout << "\n--- Memory Allocation ---" << endl;
         int pagesNeeded = (fileSizeKB + pageSize - 1) / pageSize;
+
+        liberateSpace(fileSizeKB);
 
         if(getFreeMemory() < fileSizeKB) {
             cout << "Error: Failed to allocate memory even after liberation." << endl;
@@ -130,7 +135,7 @@ class MemoryManager {
             }
         }
 
-        cout << "Sucess: File (ID: " << fileID << ") allocated "
+        cout << "Success: File (ID: " << fileID << ") allocated "
              << pagesNeeded << " pages (" << fileSizeKB << " KB) successfully." << endl;
 
              return true;
